@@ -23,7 +23,7 @@ Temporarily attach `workload-guardrails` to the security account for the rows ma
 | 3 | C3 | Organizations → IAM → Root access management | Member root credentials: *Not present* |
 | 4 | C4 | `aws s3control put-public-access-block --account-id <SECURITY_ID> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true` | Explicit deny (SCP) |
 | 5 | C5 | `aws ec2 describe-vpcs --region eu-west-1` | Explicit deny (SCP) |
-| 6 | C6 | `aws organizations leave-organization` | Explicit deny (SCP) |
+| 6 | C6 | ⚠️ **Don't** run `leave-organization`: if the guardrail were missing, the account would really leave. Check instead: `aws organizations list-policies-for-target --target-id <ROOT_ID> --filter SERVICE_CONTROL_POLICY` | `deny-leave-org` attached, denying `LeaveOrganization` + `CloseAccount` |
 | 7 | C7 | `aws guardduty delete-detector --detector-id 00000000000000000000000000000000` | Explicit deny (SCP) |
 | 8 | C7 | `aws cloudtrail stop-logging --name arn:aws:cloudtrail:us-east-1:<MGMT_ID>:trail/org-trail` | Access denied: member accounts can't touch an org trail |
 | 9 | C15 | Console: log bucket → *Show versions* → permanently delete a version | Access denied |
