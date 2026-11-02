@@ -1,0 +1,69 @@
+region = "us-east-1"
+owner  = "platform-team"
+
+groups = {
+  "Platform-Admins" = "Full admin across all accounts"
+  "Security-Team"   = "Security audit everywhere, admin in the security account"
+  "Finance"         = "Billing access in the management account"
+  "Payments-Devs"   = "Payments developers (no accounts until a Payments account exists)"
+}
+
+users = {
+  "admin1" = {
+    given_name  = "Admin"
+    family_name = "One"
+    email       = "you@example.com"
+    groups      = ["Platform-Admins"]
+  }
+  "payments-dev1" = {
+    given_name  = "Payments"
+    family_name = "Dev"
+    email       = "you+pdev1@example.com"
+    groups      = ["Payments-Devs"]
+  }
+}
+
+permission_sets = {
+  "AdministratorAccess" = {
+    description         = "Full administrator access"
+    session_duration    = "PT1H"
+    managed_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+  }
+  "SecurityAudit" = {
+    description      = "Security auditor (read security config + read-only)"
+    session_duration = "PT8H"
+    managed_policy_arns = [
+      "arn:aws:iam::aws:policy/SecurityAudit",
+      "arn:aws:iam::aws:policy/ReadOnlyAccess",
+    ]
+  }
+  "Billing" = {
+    description         = "Billing and cost management"
+    session_duration    = "PT4H"
+    managed_policy_arns = ["arn:aws:iam::aws:policy/job-function/Billing"]
+  }
+}
+
+# "management" is a special name for the management account.
+account_assignments = [
+  {
+    group          = "Platform-Admins"
+    permission_set = "AdministratorAccess"
+    accounts       = ["management", "security"]
+  },
+  {
+    group          = "Security-Team"
+    permission_set = "SecurityAudit"
+    accounts       = ["management", "security"]
+  },
+  {
+    group          = "Security-Team"
+    permission_set = "AdministratorAccess"
+    accounts       = ["security"]
+  },
+  {
+    group          = "Finance"
+    permission_set = "Billing"
+    accounts       = ["management"]
+  },
+]

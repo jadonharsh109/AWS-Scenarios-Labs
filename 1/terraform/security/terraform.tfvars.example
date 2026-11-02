@@ -1,0 +1,6 @@
+region              = "us-east-1"
+owner               = "platform-team"
+security_account_id = "111111111111"
+
+# false if Config was ever enabled in the console in these accounts
+create_config_service_linked_roles = true

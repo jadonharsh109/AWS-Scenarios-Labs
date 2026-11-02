@@ -1,0 +1,10 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Real values (emails, names, bucket) stay local — commit only the *.example files
+*.tfvars
+backend.hcl
+!*.example

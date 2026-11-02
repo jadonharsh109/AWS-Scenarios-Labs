@@ -1,0 +1,21 @@
+region      = "us-east-1"
+name_prefix = "acme-lab1"
+owner       = "platform-team"
+
+organizational_units = {
+  Security  = {}
+  Workloads = {}
+  Suspended = {}
+}
+
+# Two-account lab: management + security. Fits the default quota of 2.
+# Workload accounts (e.g. payments-dev in Workloads) can be added after a quota increase.
+accounts = {
+  "security" = {
+    email = "you+acme-security@example.com"
+    ou    = "Security"
+  }
+}
+
+monthly_budget_usd  = 10
+budget_alert_emails = ["you@example.com"]

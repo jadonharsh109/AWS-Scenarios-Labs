@@ -1,0 +1,52 @@
+region = "us-east-1"
+owner  = "platform-team"
+
+policies = {
+  # --- Root: applies to every member account ---
+  "deny-leave-org" = {
+    type        = "SERVICE_CONTROL_POLICY"
+    file        = "scp/deny-leave-org.json"
+    description = "C6: accounts can't leave the org or close themselves"
+    targets     = ["Root"]
+  }
+  "protect-baseline" = {
+    type        = "SERVICE_CONTROL_POLICY"
+    file        = "scp/protect-baseline.json"
+    description = "C3 root, C4 account BPA, C7 security services, C15 immutable log bucket"
+    targets     = ["Root"]
+  }
+  "region-restriction" = {
+    type        = "SERVICE_CONTROL_POLICY"
+    file        = "scp/region-restriction.json"
+    description = "C5: only us-east-1 and ap-south-1"
+    targets     = ["Root"]
+  }
+  "ec2-baseline" = {
+    type        = "DECLARATIVE_POLICY_EC2"
+    file        = "declarative/ec2-baseline.json"
+    description = "C9: IMDSv2 default, no public AMIs/snapshots, no serial console"
+    targets     = ["Root"]
+  }
+
+  # --- Workloads OU (empty until project accounts exist) ---
+  "workload-guardrails" = {
+    type        = "SERVICE_CONTROL_POLICY"
+    file        = "scp/workload-guardrails.json"
+    description = "C2 no IAM users, C8 encrypted EBS, C9 IMDSv2, C10 required tags"
+    targets     = ["Workloads"]
+  }
+  "workload-tags" = {
+    type        = "TAG_POLICY"
+    file        = "tag/workload-tags.json"
+    description = "C10: allowed Project/Environment values"
+    targets     = ["Workloads"]
+  }
+
+  # --- Suspended OU ---
+  "deny-all" = {
+    type        = "SERVICE_CONTROL_POLICY"
+    file        = "scp/deny-all.json"
+    description = "Suspended accounts can do nothing"
+    targets     = ["Suspended"]
+  }
+}

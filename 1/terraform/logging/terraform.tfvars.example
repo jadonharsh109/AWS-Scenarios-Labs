@@ -1,0 +1,8 @@
+region                 = "us-east-1"
+name_prefix            = "acme"
+owner                  = "platform-team"
+security_account_id = "111111111111"
+
+trail_name                 = "org-trail"
+object_lock_mode           = "GOVERNANCE"
+object_lock_retention_days = 1

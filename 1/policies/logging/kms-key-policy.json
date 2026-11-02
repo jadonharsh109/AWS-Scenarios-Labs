@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EnableSecurityAccountAdmin",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::<SECURITY_ID>:root" },
+      "Action": "kms:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowCloudTrailEncrypt",
+      "Effect": "Allow",
+      "Principal": { "Service": "cloudtrail.amazonaws.com" },
+      "Action": "kms:GenerateDataKey*",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": { "aws:SourceArn": "arn:aws:cloudtrail:us-east-1:<MGMT_ID>:trail/org-trail" },
+        "StringLike": { "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:<MGMT_ID>:trail/*" }
+      }
+    },
+    {
+      "Sid": "AllowCloudTrailDescribeKey",
+      "Effect": "Allow",
+      "Principal": { "Service": "cloudtrail.amazonaws.com" },
+      "Action": "kms:DescribeKey",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": { "aws:SourceArn": "arn:aws:cloudtrail:us-east-1:<MGMT_ID>:trail/org-trail" }
+      }
+    },
+    {
+      "Sid": "AllowOrgPrincipalsToDecryptLogs",
+      "Effect": "Allow",
+      "Principal": { "AWS": "*" },
+      "Action": ["kms:Decrypt", "kms:ReEncryptFrom"],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": { "aws:PrincipalOrgID": "<ORG_ID>" },
+        "StringLike": { "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:<MGMT_ID>:trail/*" }
+      }
+    }
+  ]
+}

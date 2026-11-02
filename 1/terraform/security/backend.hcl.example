@@ -1,0 +1,5 @@
+bucket       = "acme-lab1-tfstate-<MANAGEMENT_ACCOUNT_ID>"
+key          = "lab-1/security/terraform.tfstate"
+region       = "us-east-1"
+encrypt      = true
+use_lockfile = true
