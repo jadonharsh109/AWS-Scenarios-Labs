@@ -39,7 +39,7 @@ You are the platform team. This lab builds the **foundation**: the management an
 - Why a versioned bucket is **not** immutable, and what makes it so
 - How **SCPs** are evaluated, why they never grant anything, and how to test them safely
 - What a **delegated administrator** is, and why it can't disable itself
-- How **GuardDuty**, **Security Hub**, **Config** and **Access Analyzer** fit together
+- How **GuardDuty**, **Security Hub**, **Config** and **Access Analyzer** fit together ([plain-English guide](#-what-each-service-does-in-plain-english))
 
 ---
 
@@ -101,6 +101,101 @@ flowchart LR
     AA["Access Analyzer<br/>external access"] --> SH
     SH["🛡️ Security Hub CSPM<br/>(security, us-east-1)<br/>FSBP score for both accounts"]
 ```
+
+---
+
+## 🧩 What each service does, in plain English
+
+New to some of these? Picture the landing zone as an **office building**. Every service has one job, and together they answer four simple questions:
+
+> **Who gets in?** · **What are they allowed to do?** · **What happened?** · **Is anything wrong right now?**
+
+### 🏢 Structure and rules: *what are people allowed to do?*
+
+**AWS Organizations: the head office.**
+It owns every account and pays one combined bill. Each AWS account is a hard wall, so a mistake (or an attacker) in one account can't spill into the others. That's why companies use many accounts instead of one big one.
+
+**OUs (Organizational Units): folders for accounts.**
+We have three: *Security*, *Workloads* and *Suspended*. You attach rules to a folder once, and every account you drop into it follows them straight away. A new project account placed in Workloads is governed from minute one.
+
+**SCPs (Service Control Policies): building law.**
+Even the manager of a floor can't remove the fire exits. SCPs set the *maximum* any account can do. They only take permissions away and never give any. Here they stop people from leaving the org, using the root user, switching off security tools, working in unapproved regions, deleting audit logs and creating IAM users.
+*Remember:* SCPs never apply to the management account. That's why we test them as an SSO user in `security`.
+
+**Tag policy: a naming standard.**
+Every resource should say which `Project`, `Environment` and `Owner` it belongs to, so finance knows who spends what and everyone knows who to ask. Our SCP goes one step further and refuses to create resources that have no tags.
+
+**EC2 policy (declarative): settings nobody can change.**
+An SCP blocks API calls. A declarative policy *locks a setting* instead. We use it to force IMDSv2, which protects the instance metadata service that attackers like to use to steal credentials, and to block public sharing of AMIs and snapshots.
+
+### 🔑 Identity: *who gets in?*
+
+**IAM Identity Center (SSO): one badge at reception.**
+Everyone signs in once, with MFA. Then they pick an account and a role, and AWS hands them **temporary** credentials that expire within hours. Nobody has a long-lived password or access key, and nothing gets copied from account to account. When someone leaves the company, you disable one user and all their access is gone.
+`payments-dev1` sees an empty portal because nobody has given them anything yet. That's least privilege working.
+
+**Root access management: taking away the master key.**
+The root user can do *anything*, so the safest root password is one that doesn't exist. The management account removes root credentials from member accounts. On the rare day you really need root, `sts assume-root` gives you a short session that can only do one task.
+
+### 📼 Audit trail: *what happened?*
+
+**CloudTrail: the CCTV.**
+It records almost every API call: who did what, when, and from where. One **organization trail** covers every account, including new ones, automatically. After any incident, the first question is "who did this?", and CloudTrail is how you answer it.
+*Log file validation* adds signed hourly digest files, so `validate-logs` can prove that nothing was deleted or edited. It caught our Phase 4 deletion experiment.
+
+**S3 log bucket with Object Lock: the tamper-proof tape store.**
+The logs live in the *security* account, not in management, so someone who takes over management still can't touch the evidence. Object Lock makes files "write once, read many". We learned the hard way that Governance mode can be bypassed by admins, so SCP C15 now blocks the bypass. In real production you'd use **Compliance mode**, which nobody can bypass, not even root.
+
+**KMS key: a second lock on the tapes.**
+To read the logs you need permission on the bucket *and* on the key. Every use of the key is itself logged.
+
+### 🚨 Detection: *is anything wrong right now?*
+
+These four are easy to mix up, so here's the short version:
+
+| Service | It answers… | It looks at… | Think of it as… |
+|---|---|---|---|
+| **GuardDuty** | "Is someone attacking us?" | Behavior: API activity, network traffic, DNS | 🚨 Burglar alarm |
+| **Config** | "What do we have, and what changed?" | Resource settings over time | 📒 Building logbook |
+| **Access Analyzer** | "Can anyone *outside* our org get in?" | Bucket, key and role policies | 🚪 Door inspector |
+| **Security Hub** | "Show me everything, with a score" | Findings from all of the above, plus best-practice checks | 🖥️ Security control room |
+
+**GuardDuty.** CloudTrail *records* a break-in. GuardDuty *notices* it while it's happening. It flags things like stolen keys used from a strange country or a Tor exit node, an instance talking to a crypto-mining pool, or someone suddenly listing every bucket. We turned it on for all accounts automatically, with the paid add-ons off.
+
+**AWS Config.** It keeps an inventory of every resource and a history of every change, for example *"this security group opened port 22 to the internet on Nov 2 at 14:03"*. When an auditor asks how something looked last month, Config has the answer. Its **aggregator** in `security` shows both accounts in one view.
+
+**IAM Access Analyzer.** It reads your resource policies and warns you when something is shared **outside the organization**, like a bucket shared with a stranger's account or a role anyone can assume. We archived the expected Identity Center roles, so only real surprises show up. Bonus: its `validate-policy` command caught mistakes in our SCPs before we attached them.
+
+**Security Hub CSPM.** Instead of checking five services in every account and every region, the security team opens one screen. It collects findings from the tools above and scores both accounts against AWS's *Foundational Security Best Practices* (for example, "is S3 public access blocked?" and "are EBS volumes encrypted?"). One central policy on the org Root sets it up for every account.
+
+### 🤝 Why the security account runs all of this: delegated administrator
+
+We didn't run the detection tools from the management account. We **delegated** them to `security`:
+- The security team gets security tools **without** getting the keys to the whole org.
+- The management account stays almost empty and rarely used, so there's less to attack.
+- The people who run the platform aren't the same people who audit it.
+
+One gotcha we hit: a delegated admin **can't switch itself off**. You remove the delegation from management first ([Phase 6 field notes](docs/06-security-services.md#-field-notes)).
+
+### 💰 AWS Budgets: the smoke detector for your wallet
+
+It emails you when spending crosses a line ($10 in this lab). In a lab it's your safety net. In a company, a sudden spike in spend is often the first sign that an account was hacked and is mining crypto.
+
+### 🔗 How it all fits together
+
+```
+Engineer ──MFA──▶ Identity Center ──temporary role──▶ Member account
+                                                          │
+                          SCPs + EC2 policy limit what they can do
+                                                          │
+                    Every API call ──▶ CloudTrail ──▶ locked, encrypted bucket (security)
+                                                          │
+          GuardDuty (attacks) · Config (changes) · Access Analyzer (outside access)
+                                                          │
+                              Security Hub (one screen + a score)
+```
+
+> 🎤 **The one-breath interview answer:** *Organizations and SCPs set the boundaries, Identity Center decides who gets in, CloudTrail records what happened, GuardDuty, Config and Access Analyzer spot problems, and Security Hub puts it all on one screen.*
 
 ---
 
