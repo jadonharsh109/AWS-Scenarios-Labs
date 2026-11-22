@@ -1,0 +1,10 @@
+{
+  "httpMethod": "POST",
+  "path": "/chat",
+  "requestContext": {
+    "identity": {
+      "userArn": "arn:aws:sts::111122223333:assumed-role/AWSReservedSSO_AdministratorAccess_example/test-user"
+    }
+  },
+  "body": "{\"question\": \"How many days of parental leave do employees get?\"}"
+}

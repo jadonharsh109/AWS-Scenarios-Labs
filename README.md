@@ -27,6 +27,7 @@ Every phase guide also has:
 | # | Lab | Scenario | Key services | Status |
 |---|---|---|---|---|
 | 1 | [**Enterprise Landing Zone**](1/) | AcmeCorp moves from one shared account to a governed multi-account setup with SSO, guardrails and central security | Organizations · Identity Center · SCPs · CloudTrail · KMS · S3 Object Lock · GuardDuty · Security Hub · Config · Access Analyzer | ✅ Built · ⏳ validating |
+| 2 | [**Private Serverless GenAI Assistant**](2/) | AcmeCorp's HR assistant answers from policy docs with no internet path: private API, VPC Lambda, Bedrock over PrivateLink | API Gateway (private) · Lambda · VPC endpoints · Bedrock (Knowledge Bases, Guardrails, Nova) · S3 Vectors · DynamoDB | 📝 Design |
 
 *More labs coming. Each one gets its own numbered folder.*
 

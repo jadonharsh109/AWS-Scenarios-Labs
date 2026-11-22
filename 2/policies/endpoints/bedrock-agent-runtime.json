@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyOurKnowledgeBase",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "bedrock:Retrieve",
+      "Resource": "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:knowledge-base/*",
+      "Condition": {
+        "StringEquals": { "aws:PrincipalAccount": "<ACCOUNT_ID>" }
+      }
+    },
+    {
+      "Sid": "RetrieveAndGenerateOurAccountOnly",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "bedrock:RetrieveAndGenerate",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": { "aws:PrincipalAccount": "<ACCOUNT_ID>" }
+      }
+    }
+  ]
+}
