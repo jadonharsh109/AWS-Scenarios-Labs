@@ -1,0 +1,22 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowOurAccountPrincipals",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::<ACCOUNT_ID>:root" },
+      "Action": "execute-api:Invoke",
+      "Resource": "execute-api:/*"
+    },
+    {
+      "Sid": "G2DenyUnlessViaOurEndpoint",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "execute-api:Invoke",
+      "Resource": "execute-api:/*",
+      "Condition": {
+        "StringNotEquals": { "aws:SourceVpce": "<VPCE_EXECUTE_API>" }
+      }
+    }
+  ]
+}

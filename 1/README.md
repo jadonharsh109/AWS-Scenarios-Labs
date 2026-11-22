@@ -306,5 +306,6 @@ terraform/
 ├── README.md        ← you are here
 ├── docs/            one guide per phase: why, steps, verify, field notes, interview corner
 ├── policies/        every SCP / tag / EC2 / KMS / bucket policy as JSON
+├── tests/           validate.sh — automated Phase 7 checks (safe, no-op calls)
 └── terraform/       the same landing zone as code
 ```

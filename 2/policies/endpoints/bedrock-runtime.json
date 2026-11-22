@@ -1,0 +1,23 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "G4OnlyApprovedModelsAndOurGuardrails",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream",
+        "bedrock:ApplyGuardrail"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:guardrail/*"
+      ],
+      "Condition": {
+        "StringEquals": { "aws:PrincipalAccount": "<ACCOUNT_ID>" }
+      }
+    }
+  ]
+}

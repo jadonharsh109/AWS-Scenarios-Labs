@@ -14,6 +14,21 @@
 
 Temporarily attach `workload-guardrails` to the security account for the rows marked **\***, then move it back to Workloads.
 
+> [!TIP]
+> **Automated run:** [`tests/validate.sh`](../tests/validate.sh) runs every CLI row below, plus checks of the policy attachments and the security service settings, and prints PASS/FAIL for each one.
+> ```bash
+> aws sso login --sso-session <your-session>
+> ./tests/validate.sh                              # everything that's safe by default
+> ./tests/validate.sh --attach-workload --validate-logs   # + C2/C8/C9/C10 and log integrity
+>
+> # Your own profile names and regions
+> ./tests/validate.sh --sec-profile my-security-admin --mgmt-profile my-mgmt-admin \
+>   --region eu-central-1 --denied-region us-west-2
+> ./tests/validate.sh --help                       # all options (also settable as env vars)
+> ```
+> It needs two profiles: an admin in the **member** account (an SSO role, *not* `OrganizationAccountAccessRole`, which is exempt from the SCPs) and an admin in the **management** account. Defaults are `acme-security` and `acme-mgmt`.
+> `--attach-workload` attaches `workload-guardrails` to the security account, runs the tests, then detaches it, even if you press Ctrl-C. Rows 1, 2 and 9 still have to be done by hand in the console.
+
 ## Test matrix
 
 | # | Control | Command / action | Expected |

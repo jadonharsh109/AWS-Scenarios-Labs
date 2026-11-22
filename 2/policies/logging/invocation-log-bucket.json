@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBedrockInvocationLogs",
+      "Effect": "Allow",
+      "Principal": { "Service": "bedrock.amazonaws.com" },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::acme-genai-invocation-logs-<ACCOUNT_ID>/AWSLogs/<ACCOUNT_ID>/BedrockModelInvocationLogs/*",
+      "Condition": {
+        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" },
+        "ArnLike": { "aws:SourceArn": "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:*" }
+      }
+    },
+    {
+      "Sid": "G9DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::acme-genai-invocation-logs-<ACCOUNT_ID>",
+        "arn:aws:s3:::acme-genai-invocation-logs-<ACCOUNT_ID>/*"
+      ],
+      "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+    }
+  ]
+}
